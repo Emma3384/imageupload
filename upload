@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload to Firebase Storage</title>
+</head>
+<body>
+    <h1>Upload Image to Firebase Storage</h1>
+    <input type="file" id="fileInput">
+    <button id="uploadButton">Upload</button>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script type="module">
+        // Firebase 설정 스니펫 (Firebase 콘솔에서 얻을 수 있음)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCFy0NYV85fpEJBGZ9nb4uXfD_FDWr5GNA",
+            authDomain: "uploadimage-2b47c.firebaseapp.com",
+            projectId: "uploadimage-2b47c",
+            storageBucket: "uploadimage-2b47c.appspot.com",
+            messagingSenderId: "306691881780",
+            appId: "1:306691881780:web:139d30e3f5a901917c0361"
+        };
+
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+
+        // 이미지 업로드 함수 정의
+        function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a file first!");
+            } else {
+                const storageRef = ref(storage, `images/${file.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        // 업로드 진행 상황을 추적
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log(`Upload is ${progress}% done`);
+                    }, 
+                    (error) => {
+                        // 업로드 중 에러 발생
+                        console.error("Error uploading file:", error);
+                    }, 
+                    () => {
+                        // 업로드 완료 시 처리
+                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                            console.log('File available at', downloadURL);
+                            alert('Upload successful! File available at: ' + downloadURL);
+                        });
+                    }
+                );
+            }
+        }
+
+        // uploadImage 함수를 전역으로 설정
+        window.uploadImage = uploadImage;
+
+        // 버튼에 이벤트 핸들러 추가
+        document.getElementById('uploadButton').addEventListener('click', uploadImage);
+    </script>
+</body>
+</html>
